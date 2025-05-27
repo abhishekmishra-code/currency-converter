@@ -7,25 +7,35 @@ const ConverterForm = ({ conversionRates, currencyCodes }) => {
   const [toCurrency, setToCurrency] = useState("INR");
 
   const handleSwapCurrencies = () => {
-    setFromCurrency(toCurrency);
-    setToCurrency(fromCurrency);
+    const currentFrom = fromCurrency;
+    const currentTo = toCurrency;
+    setFromCurrency(currentTo);
+    setToCurrency(currentFrom);
   };
 
   const getExchangeRate = () => {
-    const rate =
-      (amount / conversionRates[fromCurrency]) * conversionRates[toCurrency];
-    return rate;
+    const fromRate = conversionRates[fromCurrency];
+    const toRate = conversionRates[toCurrency];
+    if (!fromRate || !toRate) return 0;
+    return (amount / fromRate) * toRate;
   };
 
-  const handleFormSubmit = (e) => {
-    e.preventDefault();
-    getExchangeRate();
-  };
+  const formatCurrency = (value, currency) =>
+    new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
 
   return (
-    <form action="" className="mt-11" onSubmit={handleFormSubmit}>
+    <div className="mt-11">
       <div>
-        <label htmlFor="amount" className="mb-2.5 block font-medium">
+        <label
+          htmlFor="amount"
+          className="mb-2.5 block font-medium"
+          aria-label="Amount to convert"
+        >
           Enter Amount
         </label>
         <input
@@ -35,18 +45,27 @@ const ConverterForm = ({ conversionRates, currencyCodes }) => {
           min={1}
           value={amount}
           className="min-h-12 w-full rounded-md border border-[rgba(255,255,255,0.5)] bg-[rgba(255,255,255,0.1)] pl-2 text-[1.1rem] outline-none"
-          onChange={(e) => setAmount(e.target.value)}
+          onChange={(e) => {
+            const value = Number(e.target.value);
+            if (value >= 0) {
+              setAmount(value);
+            }
+          }}
         />
       </div>
 
-      <div className="mt-4 flex flex-row items-center justify-between gap-4">
+      <div className="xs:flex-row mt-4 flex flex-col items-center justify-around gap-4">
         <div className="mb-7 flex flex-col">
-          <label htmlFor="fromCurrency">From</label>
-          {currencyCodes && <CurrencySelect
-          currencyCodes={currencyCodes}
-            selectedCurrency={fromCurrency}
-            handleCurrency={(e) => setFromCurrency(e.target.value)}
-          />}
+          <label htmlFor="fromCurrency" className="mb-1 text-center">
+            From
+          </label>
+          {currencyCodes && (
+            <CurrencySelect
+              currencyCodes={currencyCodes}
+              selectedCurrency={fromCurrency}
+              handleCurrency={(e) => setFromCurrency(e.target.value)}
+            />
+          )}
         </div>
 
         {/* SVG swap icon */}
@@ -68,24 +87,34 @@ const ConverterForm = ({ conversionRates, currencyCodes }) => {
         </div>
 
         <div className="mb-7 flex flex-col">
-          <label htmlFor="fromCurrency">To</label>
-          {currencyCodes && <CurrencySelect
-          currencyCodes={currencyCodes}
-            selectedCurrency={toCurrency}
-            handleCurrency={(e) => setToCurrency(e.target.value)}
-          />}
+          <label htmlFor="fromCurrency" className="mb-1 text-center">
+            To
+          </label>
+          {currencyCodes && (
+            <CurrencySelect
+              currencyCodes={currencyCodes}
+              selectedCurrency={toCurrency}
+              handleCurrency={(e) => setToCurrency(e.target.value)}
+            />
+          )}
         </div>
       </div>
-      <button
-        type="submit"
-        className="min-h-12 w-full cursor-pointer rounded-md bg-[rgba(255,255,255,0.1)] font-semibold duration-200 ease-in-out hover:bg-[rgba(255,255,255,0.8)] hover:text-gray-900"
-      >
-        Get Exchange Rate
-      </button>
+
       <p className="mt-7 rounded-md bg-[rgba(255,255,255,0.15)] py-6 text-center text-xl font-medium tracking-[0.5px]">
-        {amount} {fromCurrency} = {getExchangeRate().toFixed(2)} {toCurrency}
+        {!conversionRates[fromCurrency] || !conversionRates[toCurrency] ? (
+          <span className="animate-pulse">Loading exchange rates...</span>
+        ) : (
+          `${amount} ${fromCurrency} = ${formatCurrency(getExchangeRate(), toCurrency)}`
+        )}
       </p>
-    </form>
+      <p className="mt-2 text-center text-sm opacity-70">
+        Exchange rate: 1 {fromCurrency} ={" "}
+        {(conversionRates[toCurrency] / conversionRates[fromCurrency]).toFixed(
+          4,
+        )}{" "}
+        {toCurrency}
+      </p>
+    </div>
   );
 };
 

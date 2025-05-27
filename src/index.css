@@ -6,6 +6,7 @@
 }
 
 @theme {
+  --breakpoint-xs: 20rem;
   --animate-fadeInOut: fadeInOut 2s ease-in-out forwards;
 
   @keyframes fadeInOut {
