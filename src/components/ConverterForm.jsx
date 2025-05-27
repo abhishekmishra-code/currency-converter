@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import CurrencySelect from "./CurrencySelect";
 
-const ConverterForm = () => {
+const ConverterForm = ({ conversionRates, currencyCodes }) => {
+  const [amount, setAmount] = useState(1);
   const [fromCurrency, setFromCurrency] = useState("USD");
   const [toCurrency, setToCurrency] = useState("INR");
 
@@ -11,8 +12,10 @@ const ConverterForm = () => {
   };
 
   const getExchangeRate = () => {
-    const API_URL = `https://v6.exchangerate-api.com/v6/d76c986319ec5ff2cb219429/latest/USD`
-  }
+    const rate =
+      (amount / conversionRates[fromCurrency]) * conversionRates[toCurrency];
+    return rate;
+  };
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
@@ -29,17 +32,21 @@ const ConverterForm = () => {
           type="number"
           id="amount"
           name="amount"
-          className="min-h-12 w-full rounded-md border border-[rgba(255,255,255,0.5)] bg-[rgba(255,255,255,0.1)] text-[1.1rem] outline-none"
+          min={1}
+          value={amount}
+          className="min-h-12 w-full rounded-md border border-[rgba(255,255,255,0.5)] bg-[rgba(255,255,255,0.1)] pl-2 text-[1.1rem] outline-none"
+          onChange={(e) => setAmount(e.target.value)}
         />
       </div>
 
       <div className="mt-4 flex flex-row items-center justify-between gap-4">
         <div className="mb-7 flex flex-col">
           <label htmlFor="fromCurrency">From</label>
-          <CurrencySelect
+          {currencyCodes && <CurrencySelect
+          currencyCodes={currencyCodes}
             selectedCurrency={fromCurrency}
             handleCurrency={(e) => setFromCurrency(e.target.value)}
-          />
+          />}
         </div>
 
         {/* SVG swap icon */}
@@ -62,10 +69,11 @@ const ConverterForm = () => {
 
         <div className="mb-7 flex flex-col">
           <label htmlFor="fromCurrency">To</label>
-          <CurrencySelect
+          {currencyCodes && <CurrencySelect
+          currencyCodes={currencyCodes}
             selectedCurrency={toCurrency}
             handleCurrency={(e) => setToCurrency(e.target.value)}
-          />
+          />}
         </div>
       </div>
       <button
@@ -75,7 +83,7 @@ const ConverterForm = () => {
         Get Exchange Rate
       </button>
       <p className="mt-7 rounded-md bg-[rgba(255,255,255,0.15)] py-6 text-center text-xl font-medium tracking-[0.5px]">
-        1000 USD = 8000 INR
+        {amount} {fromCurrency} = {getExchangeRate().toFixed(2)} {toCurrency}
       </p>
     </form>
   );
